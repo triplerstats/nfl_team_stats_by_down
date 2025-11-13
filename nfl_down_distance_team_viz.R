@@ -1,5 +1,3 @@
-setwd("C:/Users/richr/OneDrive/Documents/R")
-
 library(tidyverse)
 library(ggplot2)
 library(RColorBrewer)
@@ -15,8 +13,8 @@ library(nflfastR)
 # from NFL FastR Readme
 ## import play-by-play data from specified seasons
 ## import play-by-play data from specified seasons
-season_min = 2021
-season_max = 2021
+season_min = 2025
+season_max = 2025
 
 seasons <- season_min:season_max
 
@@ -28,10 +26,10 @@ pbp_rp <- pbp %>%
   filter(!is.na(down)) %>%
   filter(!is.na(epa))
 
-pbp_rp <- as_tibble(pbp_rp)
+#pbp_rp <- as_tibble(pbp_rp)
 
 league_down_distance_summary <- pbp_rp %>%
-  filter(season == 2021) %>%
+  filter(season %in% seasons) %>%
   mutate(ydstogo_cut = cut(ydstogo, breaks = c(0, 1, 2, 4, 7, 10, 99))) %>%
   group_by(down, ydstogo_cut) %>%
   summarize(plays = n(),
@@ -52,7 +50,7 @@ league_down_distance_summary <- pbp_rp %>%
 league_down_distance_summary <- as_tibble(league_down_distance_summary)
 
 team_down_distance_summary <- pbp_rp %>%
-  filter(season == 2021) %>%
+  filter(season %in% seasons) %>%
   mutate(ydstogo_cut = cut(ydstogo, breaks = c(0, 1, 2, 4, 7, 10, 99))) %>%
   group_by(posteam, down, ydstogo_cut) %>%
   summarize(plays = n(),
@@ -121,6 +119,7 @@ generate_down_and_distance_plot <- function(df, variable_name, team_abbreviation
                          limits = c(min_z_score, max_z_score)) +
     geom_text(aes(label = paste0("Team: ", scales::percent(get(paste0(variable_name, "_team")), accuracy = 0.1)), vjust = -1.5)) +
     geom_text(aes(label = paste0("League: ", scales::percent(get(paste0(variable_name, "_league")), accuracy = 0.1)), vjust = 0)) +
+    geom_text(aes(label = paste0("# of Plays: ", plays_team), vjust = 1.5)) +
     #geom_text(aes(label = paste0("Plays: ", plays_team), vjust = 1.5)) +
     labs(title = paste0(title_text, " - ", team_abbreviation),
          x = "Yards to Go",
@@ -131,5 +130,6 @@ generate_down_and_distance_plot <- function(df, variable_name, team_abbreviation
   return(p1)
 }
 
-generate_down_and_distance_plot(df = team_league_combined, variable_name = "pass_pct", team_abbreviation = "BUF",
+generate_down_and_distance_plot(df = team_league_combined, variable_name = "pass_pct", 
+                                team_abbreviation = "SEA",
                                 title_text = "Pass Plays as Percent of All Plays")
